@@ -1,0 +1,153 @@
+// Prisma Schema for RENTO
+// Better Auth requires: User, Session, Account, Verification models
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  admin
+  owner
+  renter
+}
+
+enum Status {
+  active
+  banned
+  suspended
+}
+
+// ─── Better Auth Models ───────────────────────────────────────────────────────
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  // Custom RENTO fields
+  role            Role      @default(renter)
+  status          Status    @default(active)
+
+  // Better Auth relations
+  sessions        Session[]
+  accounts        Account[]
+
+  // RENTO relations
+  listings        Listing[]
+  bookings        Booking[]
+  reviewsSent     Review[]  @relation("Reviewer")
+  reviewsReceived Review[]  @relation("Reviewee")
+
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+}
+
+// ─── RENTO Models ─────────────────────────────────────────────────────────────
+
+model Listing {
+  id             String         @id @default(uuid())
+  ownerId        String         @map("owner_id")
+  owner          User           @relation(fields: [ownerId], references: [id])
+  title          String
+  description    String
+  category       String
+  pricePerDay    Decimal        @map("price_per_day")
+  depositAmount  Decimal        @map("deposit_amount")
+  status         String
+  bookings       Booking[]
+  availability   Availability[]
+}
+
+model Availability {
+  listingId   String   @map("listing_id")
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  dateBlocked DateTime @map("date_blocked") @db.Date
+
+  @@id([listingId, dateBlocked])
+}
+
+model Booking {
+  id          String    @id @default(uuid())
+  listingId   String    @map("listing_id")
+  listing     Listing   @relation(fields: [listingId], references: [id])
+  renterId    String    @map("renter_id")
+  renter      User      @relation(fields: [renterId], references: [id])
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime  @map("end_date") @db.Date
+  status      String
+  totalPrice  Decimal   @map("total_price")
+  payments    Payment[]
+  reviews     Review[]
+}
+
+model Payment {
+  id            String  @id @default(uuid())
+  bookingId     String  @map("booking_id")
+  booking       Booking @relation(fields: [bookingId], references: [id])
+  amount        Decimal
+  depositAmount Decimal @map("deposit_amount")
+  status        String
+}
+
+model Review {
+  id         String  @id @default(uuid())
+  bookingId  String  @map("booking_id")
+  booking    Booking @relation(fields: [bookingId], references: [id])
+  reviewerId String  @map("reviewer_id")
+  reviewer   User    @relation("Reviewer", fields: [reviewerId], references: [id])
+  revieweeId String  @map("reviewee_id")
+  reviewee   User    @relation("Reviewee", fields: [revieweeId], references: [id])
+  rating     Int
+  comment    String?
+}
