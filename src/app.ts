@@ -37,11 +37,17 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Rento server is running" });
+});
+
 // Health Check
 // API No.5  GET  /health  — Server health check
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+
 
 // API Routes
 app.use("/api/listings", listingRoutes);
