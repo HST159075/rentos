@@ -44,7 +44,7 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// ─── API Routes ────────────────────────────────────────────────────────────────
+//API Routes 
 app.use("/api/listings", listingRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/dashboards", dashboardRoutes);

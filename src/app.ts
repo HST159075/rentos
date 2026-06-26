@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
+import ServerlessHttp from "serverless-http";
 
 const app = express();
 
@@ -38,3 +39,4 @@ app.get("/health", (req, res) => {
 });
 
 export default app;
+export const handler = ServerlessHttp(app)
