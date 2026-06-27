@@ -19,7 +19,9 @@ const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
   .map((o) => o.trim());
 
 // Security Middlewares
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+  }));
 
 // CORS
 app.use(
@@ -35,9 +37,7 @@ app.use(
   }),
 );
 
-// Better Auth
-// Must come BEFORE express.json() middleware
-// Manually handle CORS for Better Auth routes because toNodeHandler bypasses Express CORS middleware
+
 app.use("/api/auth", (req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {

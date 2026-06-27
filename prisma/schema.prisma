@@ -37,6 +37,7 @@ model User {
 
   // Social provider IDs (required by Better Auth internally)
   googleId      String?   @unique @map("google_id")
+  avatarUrl     String?   @map("avatar_url")
 
   // Custom RENTO fields
   role            Role      @default(renter)
