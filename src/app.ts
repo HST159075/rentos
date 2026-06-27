@@ -16,9 +16,11 @@ const app = express();
 
 // Strip Netlify Function path prefix before routing in Express
 app.use((req, res, next) => {
+  console.log(`DEBUG: req.method=${req.method} req.url=${req.url} req.path=${req.path} req.originalUrl=${req.originalUrl}`);
   const prefix = "/.netlify/functions/api";
   if (req.url.startsWith(prefix)) {
     req.url = req.url.slice(prefix.length) || "/";
+    console.log(`DEBUG: Stripped prefix. New req.url=${req.url}`);
   }
   next();
 });
