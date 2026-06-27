@@ -13,6 +13,9 @@ import reviewRoutes from "./routes/review.routes";
 import userRoutes from "./routes/user.routes";
 
 const app = express();
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim());
 
 // Security Middlewares
 app.use(helmet());
@@ -20,7 +23,13 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
@@ -46,8 +55,6 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
-
-
 
 // API Routes
 app.use("/api/listings", listingRoutes);

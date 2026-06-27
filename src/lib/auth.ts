@@ -3,15 +3,15 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 
-// TODO(security): Consider adding MFA (Multi-Factor Authentication) in the future.
-// TODO(security): Consider adding OAuth providers (Google, GitHub) for social login.
-// TODO(security): Consider adding leaked password detection (e.g. HaveIBeenPwned API).
-
 if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error(
     "BETTER_AUTH_SECRET is not set. Please add it to your .env file."
   );
 }
+
+const trustedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim());
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -37,6 +37,8 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",
 
+  trustedOrigins,
+
   emailAndPassword: {
     enabled: true,
     // Minimum 8 characters enforced by Better Auth
@@ -51,6 +53,13 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60, // 5 minutes cookie cache
+    },
+  },
+
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
     },
   },
 });
