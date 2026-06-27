@@ -35,6 +35,9 @@ model User {
   createdAt     DateTime
   updatedAt     DateTime
 
+  // Social provider IDs (required by Better Auth internally)
+  googleId      String?   @unique @map("google_id")
+
   // Custom RENTO fields
   role            Role      @default(renter)
   status          Status    @default(active)
