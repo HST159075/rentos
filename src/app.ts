@@ -37,6 +37,22 @@ app.use(
 
 // Better Auth
 // Must come BEFORE express.json() middleware
+// Manually handle CORS for Better Auth routes because toNodeHandler bypasses Express CORS middleware
+app.use("/api/auth", (req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
+
 // API No.1  POST  /api/auth/sign-up/email  — Register new user
 // API No.2  POST  /api/auth/sign-in/email  — Login
 // API No.3  POST  /api/auth/sign-out       — Logout
