@@ -13,6 +13,16 @@ import reviewRoutes from "./routes/review.routes";
 import userRoutes from "./routes/user.routes";
 
 const app = express();
+
+// Strip Netlify Function path prefix before routing in Express
+app.use((req, res, next) => {
+  const prefix = "/.netlify/functions/api";
+  if (req.url.startsWith(prefix)) {
+    req.url = req.url.slice(prefix.length) || "/";
+  }
+  next();
+});
+
 const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());
